@@ -128,7 +128,8 @@ class Arvore:
     # Caso contrário, retorna True.
     #
     # É possível interromper a execução quando encontrar componentes disconexos
-    # ou ciclos, mas decidi deixar executar o dfs por completo por consistência.
+    # ou ciclos, mas decidi deixar executar o dfs por completo para manter
+    # consistência nos valores das arestas do grafo.
     def dfs(self) -> bool:
         if not self.vertices:
             return False
@@ -263,7 +264,7 @@ def main():
     assert a.removeAresta(3, 5) == True     # remove uma aresta do ciclo
     assert a.addVertice(6) == True
     assert a.addAresta(5, 6) == True
-    assert a.diametro() == 4                # Caminho de D -> F
+    assert a.diametro() == 4                # Caminho de 4 -> 6
 
     # Representação da árvore
     #      4    6
