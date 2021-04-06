@@ -19,11 +19,12 @@ import random
 
 
 # Classe auxiliar para randomTreeRandomWalk.
-# Permite remover e pegar um elemento aleatório em tempo constante
+# Permite remover e pegar um elemento aleatório em tempo constante.
 #
 # Baseado na estrutura de dados descrita em:
 # https://www.geeksforgeeks.org/design-a-data-structure-that-supports-insert-delete-search-and-getrandom-in-constant-time/
 class ListaMapeada:
+    # Inicializa a lista mapeada com n elementos [0, 1, ..., n-1].
     def __init__(self, n: int) -> None:
         self.lista: List[int] = []
         self.hash: Dict[int, int] = {}
@@ -31,21 +32,23 @@ class ListaMapeada:
             self.lista.append(i)
             self.hash[i] = i
 
-    # Remove o elemento x da estrutura
-    # Assume que x está presente na lista
+    # Remove o elemento x da estrutura.
+    # Assume que x está presente na lista.
     def remove(self, x: int) -> None:
         # Pega o índice em que x se encontra
+        # pop() em Dict tem tempo de execução médio O(1).
         posX = self.hash.pop(x)
-        # Troca x e o último elemento de lugar
+        # Troca x e o último elemento de lugar.
         tam = len(self.lista)
         ultimo = self.lista[tam-1]
         self.lista[posX], self.lista[tam-1] = \
             self.lista[tam-1], self.lista[posX]
-        # pop() tem tempo de execução O(1)
+        # pop() em lista tem tempo de execução O(1).
         self.lista.pop()
         self.hash[ultimo] = posX
 
-    # Retorna um elemento aleatório da lista e o remove no processo
+    # Retorna um elemento aleatório da lista e o remove no processo.
+    # Assume que há elementos na lista.
     def popAleatorio(self) -> int:
         indice = random.randint(0, len(self.lista) - 1)
         numRetorno = self.lista[indice]
@@ -65,10 +68,10 @@ class Vertice:
 class Arvore:
     def __init__(self) -> None:
         self.vertices: Dict[int, Vertice] = {}
-        self.tempo: int = 0
         self.numArestas: int = 0
+        self.tempo: int = 0
         # tempo é usado no DFS, não sei como fazer recursão passando
-        # tempo por referência em python
+        # tempo por referência em python.
 
     # Adiciona um vértice v à árvore.
     #
@@ -134,10 +137,10 @@ class Arvore:
 
     # Função auxiliar de dfs().
     #
-    # Baseado no pseudocódigo dos slides.
-    #
     # Caso encontre um ciclo na árvore, retorna False.
     # Caso contrário, retorna True.
+    #
+    # Baseado no pseudocódigo dos slides.
     def __dfsVisit(self, u: int) -> bool:
         self.tempo += 1
         resultado = True
@@ -161,15 +164,15 @@ class Arvore:
     # Executa a busca em profundidade na árvore, gravando o pai e os tempos de
     # descoberta e término de cada vértice.
     #
-    # Baseado no pseudocódigo dos slides.
-    #
     # Caso não haja vértices na árvore, retorna False.
     # Caso encontre componentes disconexos ou ciclos, retorna False.
     # Caso contrário, retorna True.
     #
+    # Baseado no pseudocódigo dos slides.
+    #
     # É possível interromper a execução quando encontrar componentes disconexos
     # ou ciclos, mas decidi deixar executar o dfs por completo para manter
-    # consistência nos valores das arestas do grafo.
+    # consistência nos valores dos vértices do grafo.
     def dfs(self) -> bool:
         if not self.vertices:
             return False
@@ -195,9 +198,9 @@ class Arvore:
     # Retorna uma tupla com o primeiro vértice descoberto com a distância máxima
     # até s e sua distância.
     #
-    # Baseado no pseudocódigo dos slides.
-    #
     # Caso não exista vértice com nome s na árvore, retorna (None, 0).
+    #
+    # Baseado no pseudocódigo dos slides.
     def bfs(self, s: int) -> Tuple[int, int]:
         maior = (None, 0)
 
@@ -223,11 +226,12 @@ class Arvore:
 
     # Retorna o comprimento do maior caminho da árvore
     #
-    # Baseado no pseudocódigo dos slides.
-    #
     # Caso a árvore não for conexa e acíclica, retorna -1
-    # Caso a árvore não tiver vértices, retorna -1
+    # Caso a árvore não tenha vértices, retorna -1
+    #
+    # Baseado no pseudocódigo dos slides.
     def diametro(self) -> int:
+
         if self.dfs() == False:
             return -1
         # Pega a primeira chave de self.vertices
@@ -236,7 +240,9 @@ class Arvore:
         return self.bfs(a[0])[1]
 
     # Gera uma árvore aleatória com n vértices.
-    # Sobrescreve os dados da árvore anteriores à execução
+    # Sobrescreve os dados da árvore anteriores à execução.
+    #
+    # Caso n < 1, a operação não é executada.
     #
     # Baseado no pseudocódigo dos slides.
     def randomTreeRandomWalk(self, n: int) -> None:
@@ -244,6 +250,7 @@ class Arvore:
             return
 
         self.__init__()
+        # Descrição da ListaMapeada está no início da definição de dados.
         listaDisponiveis: ListaMapeada = ListaMapeada(n)
         for i in range(n):
             self.vertices[i] = Vertice()
@@ -258,8 +265,10 @@ class Arvore:
         # Por padrão, o algoritmo gera números aleatórios e verifica se
         # o vértice já foi visitado.
         # No momento que um vértice já visitado é selecionado, a flag
-        # buscarLista é ativada e o algoritmo busca na lista de disponíveis.
+        # buscarLista é ativada e o algoritmo busca um vértice na lista
+        # de disponíveis.
         # Depois de buscar na lista de disponíveis, a flag volta a ser False
+        # e a seleção volta a ser aleatória.
         while listaDisponiveis.lista:
             if buscarLista:
                 v = listaDisponiveis.popAleatorio()
@@ -278,8 +287,12 @@ class Arvore:
 
 
 class Grafo:
+    # Inicializa o grafo como uma matriz de adjacência n x n, com todos
+    # os campos preenchidos com o valor -1.
     def __init__(self, n) -> None:
-        self.matrizAdj = [[-1 for i in range(n)] for j in range(n)]
+        self.matrizAdj = [[-1] * n] * n
+
+# Funcão Principal
 
 
 def main():
@@ -380,7 +393,7 @@ assert a.diametro() == 4                # Caminho de 4 -> 6
 #      1
 
 a.randomTreeRandomWalk(50)
-a.diametro()
+assert a.diametro() != -1
 
 if __name__ == '__main__':
     main()
