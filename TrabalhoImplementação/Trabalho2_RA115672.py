@@ -8,6 +8,7 @@
 from typing import List, Dict, Tuple
 from collections import deque
 import random
+import time
 
 
 # Definição de Dados
@@ -292,6 +293,7 @@ class Grafo:
     def __init__(self, n) -> None:
         self.matrizAdj = [[-1] * n] * n
 
+
 # Funcão Principal
 
 
@@ -302,9 +304,13 @@ def main():
     resultado: int
     media: float
     arvore: Arvore = Arvore()
+    tempoInicio: float = time.time()
+    tempoExec: float
 
     arqRandomWalk = open("randomwalk.txt", 'w')
+    print("Tempo de execução do Random Walk:")
     for i in tamanhos:
+        tempoExec = time.time()
         for j in range(numExec):
             arvore.randomTreeRandomWalk(i)
             resultado = arvore.diametro()
@@ -316,6 +322,9 @@ def main():
         media = acumulador/numExec
         arqRandomWalk.write(str(i) + ' ' + str(media) + '\n')
         acumulador = 0
+        tempoExec = time.time() - tempoExec
+        print(f'{i:4} Elementos: {tempoExec:.2f}s')
+    print(f'Tempo Total: {time.time()-tempoInicio:.2f}s')
     arqRandomWalk.close()
     exit
 
