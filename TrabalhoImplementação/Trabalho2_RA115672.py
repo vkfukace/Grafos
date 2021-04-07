@@ -308,7 +308,7 @@ def main():
     tempoExec: float
 
     arqRandomWalk = open("randomwalk.txt", 'w')
-    print("Tempo de execução do Random Walk:")
+    print(f'Tempo de execução do Random Walk ({numExec} vezes):')
     for i in tamanhos:
         tempoExec = time.time()
         for j in range(numExec):
