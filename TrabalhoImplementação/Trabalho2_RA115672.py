@@ -58,6 +58,8 @@ class ListaMapeada:
 
 
 class Vertice:
+    # Inicializa o vértice com todos seus atributos sendo None
+    # e lista de adjacência vazia.
     def __init__(self) -> None:
         self.d: int = None
         self.f: int = None
@@ -67,10 +69,11 @@ class Vertice:
 
 
 class Arvore:
+    # Inicializa a árvore com nenhum vértice.
     def __init__(self) -> None:
         self.vertices: Dict[int, Vertice] = {}
         self.numArestas: int = 0
-        self.tempo: int = 0
+        self.__tempo: int = 0
         # tempo é usado no DFS, não sei como fazer recursão passando
         # tempo por referência em python.
 
@@ -143,9 +146,9 @@ class Arvore:
     #
     # Baseado no pseudocódigo dos slides.
     def __dfsVisit(self, u: int) -> bool:
-        self.tempo += 1
+        self.__tempo += 1
         resultado = True
-        self.vertices[u].d = self.tempo
+        self.vertices[u].d = self.__tempo
         self.vertices[u].cor = "cinza"
 
         for v in self.vertices[u].adj:
@@ -158,8 +161,8 @@ class Arvore:
                 resultado = False and self.__dfsVisit(v)
 
         self.vertices[u].cor = "preto"
-        self.tempo += 1
-        self.vertices[u].f = self.tempo
+        self.__tempo += 1
+        self.vertices[u].f = self.__tempo
         return resultado
 
     # Executa a busca em profundidade na árvore, gravando o pai e os tempos de
@@ -179,7 +182,7 @@ class Arvore:
             return False
 
         self.__inicializaVertices("branco")
-        self.tempo = 0
+        self.__tempo = 0
         ehPrimeiraExecucao: bool = True
         flag: bool = True
 
