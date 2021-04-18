@@ -522,9 +522,10 @@ def testesGeral():
     assert a.diametro() != -1
 
 
-# Calcula a média dos diâmetros das árvores criadas usando randomTreeRandomWalk
-# e grava em "randomwalk.txt".
+# Gera árvores aleatórias usando randomTreeRandomWalk e grava a média dos
+# diâmetros dessas árvores em "randomwalk.txt".
 # Para cada n em tamanhos, são geradas numExec árvores de tamanho n.
+# Mostra o tempo de execução para cada tamanho n.
 def testesRandomWalk(tamanhos: List[int], numExec: int) -> None:
     acumulador: float = 0
     resultado: int
@@ -556,9 +557,10 @@ def testesRandomWalk(tamanhos: List[int], numExec: int) -> None:
         arqRandomWalk.close()
 
 
-# Calcula a média dos diâmetros das árvores criadas usando randomTreeKruskal
-# e grava em "kruskal.txt".
+# Gera árvores aleatórias usando randomTreeKruskal e grava a média dos
+# diâmetros dessas árvores em "kruskal.txt".
 # Para cada n em tamanhos, são geradas numExec árvores de tamanho n.
+# Mostra o tempo de execução para cada tamanho n.
 def testesKruskal(tamanhos: List[int], numExec: int) -> None:
     acumulador: float = 0
     resultado: int
