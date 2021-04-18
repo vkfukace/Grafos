@@ -380,7 +380,7 @@ class Grafo:
 
     # Gera a árvore geradora mínima do grafo usando o algoritmo de Kruskal.
     # Retorna uma lista com as arestas da árvore.
-    # Caso o grafo esteja vazio, retorna []
+    # Caso o grafo esteja vazio, retorna [].
     #
     # Baseado no pseudocódigo dos slides.
     def kruskal(self) -> List[Tuple[int, int]]:
@@ -404,14 +404,12 @@ class Grafo:
         return arestasMinimas
 
 
-# Testes
-
+# Executa uma série de testes para as funções implementadas.
 def testesGeral():
     # Operações em Árvore
-
     a = Arvore()
 
-    # Operações em árvore vazio
+    # Operações em árvore vazia
     assert a.diametro() == -1
     assert a.bfs(1) == (None, 0)
     assert a.isArvore() == False
@@ -440,7 +438,7 @@ def testesGeral():
     assert a.isArvore() == True
 
     a.addVertice(5)
-    assert a.isArvore() == False                 # 5 não está conexo à árvore
+    assert a.isArvore() == False            # 5 não está conexo à árvore
 
     a.addAresta(1, 5)
     assert a.isArvore() == True
@@ -481,6 +479,7 @@ def testesGeral():
     #      1
 
     # Operações em lista mapeada
+
     l = ListaMapeada(10)
     l.remove(9)
     assert len(l.lista) == 9
@@ -497,8 +496,11 @@ def testesGeral():
     # Operações em grafo
 
     g = Grafo(10)
+    assert len(g.matrizAdj) == 10
     g.aleatorio()
+    assert len(g.matrizAdj) == 10
     arestasG = g.criaListaArestas()
+    # Total de arestas em g é um somatório de 1 + 2 + ... + len(g)-1
     totalArestasG = 0
     for i in range(10):
         totalArestasG += i
@@ -509,10 +511,10 @@ def testesGeral():
     conj = ConjuntoDisjunto(5)
     assert conj.union(0, 1) == True
     assert conj.union(2, 1) == True
-    assert conj.union(0, 2) == False        # No mesmo conjunto
+    assert conj.union(0, 2) == False        # 0 e 2 estão no mesmo conjunto
     assert conj.union(3, 4) == True
     assert conj.union(1, 4) == True
-    assert conj.union(2, 3) == False
+    assert conj.union(2, 3) == False        # 2 e 3 estão no mesmo conjunto
 
     # Kruskal
 
@@ -520,6 +522,9 @@ def testesGeral():
     assert a.diametro() != -1
 
 
+# Calcula a média dos diâmetros das árvores criadas usando randomTreeRandomWalk
+# e grava em "randomwalk.txt".
+# Para cada n em tamanhos, são geradas numExec árvores de tamanho n.
 def testesRandomWalk(tamanhos: List[int], numExec: int) -> None:
     acumulador: float = 0
     resultado: int
@@ -539,7 +544,7 @@ def testesRandomWalk(tamanhos: List[int], numExec: int) -> None:
                 if resultado == -1:
                     print("Erro na geração de árvore")
                     arqRandomWalk.close()
-                    exit
+                    return
                 acumulador += resultado
             media = acumulador/numExec
             arqRandomWalk.write(str(i) + ' ' + str(media) + '\n')
@@ -551,6 +556,9 @@ def testesRandomWalk(tamanhos: List[int], numExec: int) -> None:
         arqRandomWalk.close()
 
 
+# Calcula a média dos diâmetros das árvores criadas usando randomTreeKruskal
+# e grava em "kruskal.txt".
+# Para cada n em tamanhos, são geradas numExec árvores de tamanho n.
 def testesKruskal(tamanhos: List[int], numExec: int) -> None:
     acumulador: float = 0
     resultado: int
@@ -570,7 +578,7 @@ def testesKruskal(tamanhos: List[int], numExec: int) -> None:
                 if resultado == -1:
                     print("Erro na geração de árvore")
                     arqKruskal.close()
-                    exit
+                    return
                 acumulador += resultado
             media = acumulador/numExec
             arqKruskal.write(str(i) + ' ' + str(media) + '\n')
