@@ -74,9 +74,9 @@ class ConjuntoDisjunto:
 
     # Retorna o vértice pai do conjunto de v.
     # Assume que v está na estrutura.
-    def __findSet(self, v: int) -> None:
+    def findSet(self, v: int) -> None:
         if self.pai[v] != v:
-            self.pai[v] = self.__findSet(self.pai[v])
+            self.pai[v] = self.findSet(self.pai[v])
         return self.pai[v]
 
     # Junta os conjuntos de u e v.
@@ -85,8 +85,8 @@ class ConjuntoDisjunto:
     # Caso u e v estejam no mesmo conjunto, retorna False.
     # Caso contrário, retorna True.
     def union(self, u: int, v: int) -> bool:
-        u = self.__findSet(u)
-        v = self.__findSet(v)
+        u = self.findSet(u)
+        v = self.findSet(v)
 
         if u == v:
             return False
@@ -218,18 +218,17 @@ class Arvore:
 
         self.__inicializaVertices("branco")
         ehPrimeiraExecucao: bool = True
-        flag: bool = True
 
         # Depois da primeira execução de dfsVisit(), todos os outros elementos
         # devem estar coloridos. Se esse não for o caso, há elementos desconexos.
         for u in self.vertices:
             if self.vertices[u].cor == "branco":
                 if not ehPrimeiraExecucao:
-                    flag = False
+                    return False
                 if self.__dfsVisit(u) == False:
-                    flag = False
+                    return False
                 ehPrimeiraExecucao = False
-        return flag
+        return True
 
     # Executa a busca em largura na árvore começando no vértice s.
     # Grava o pai e a distância até s de cada vértice.
@@ -337,45 +336,43 @@ class Arvore:
         for i in range(n):
             self.vertices[i] = Vertice()
 
-        g = Grafo(n)
-        g.aleatorio()
+        g = GrafoAleatorio(n)
         listaArestas: List[Tuple[int, int]] = g.kruskal()
 
         for aresta in listaArestas:
             self.addAresta(aresta[0], aresta[1])
 
 
-class Grafo:
+class GrafoAleatorio:
     # Inicializa o grafo como uma matriz de adjacência n x n.
-    # Todos os vértices (u,v) recebem o valor 1.
-    # Assume que n > 0
+    # Todos os vértices (u,v) = (v,u) recebem um peso aleatório [0, 1),
+    # com exceção dos vértices (u, u), que recebem 1.0.
+    # Assume que n > 0.
     def __init__(self, n: int) -> None:
         self.matrizAdj: List[List[float]] = [
             [1.0 for i in range(n)]for j in range(n)]
 
-    # Todos os vértices (u,v) = (v,u) recebem um peso aleatório [0, 1),
-    # com exceção dos vértices (u, u), que mantêm seus valores.
-    def aleatorio(self) -> None:
-        if self.matrizAdj:
-            n: int = len(self.matrizAdj)
-            i: int = 1
-            for u in range(n):
-                for v in range(i, n):
-                    self.matrizAdj[u][v] = random.random()
-                    self.matrizAdj[v][u] = self.matrizAdj[u][v]
-                i += 1
+        self.numVert: int = n
 
-    # Retorna uma lista das arestas contidas no grafo e seus pesos.
-    # Para cada aresta (u, v), a entrada da lista é do tipo [w(u, v), u, v].
+        for u in range(self.numVert):
+            for v in range(u+1, self.numVert):
+                self.matrizAdj[u][v] = random.random()
+                self.matrizAdj[v][u] = self.matrizAdj[u][v]
+
+        for u in range(self.numVert):
+            self.matrizAdj[u][u] = 1.0
+
+    # Retorna uma lista das arestas contidas no grafo e seus pesos, com
+    # exceção das arestas do tipo (u, u).
+    # Para cada aresta (u, v), a entrada na lista é do tipo [w(u, v), u, v].
     def criaListaArestas(self) -> List[Tuple[int, int, int]]:
+        # Como metade das arestas são repetidas, os vértices adicionados na
+        # lista serão do tipo [(u, v), u < v].
         listaArestas: List[Tuple[int, int, int]] = []
         if self.matrizAdj:
-            n: int = len(self.matrizAdj)
-            i: int = 1
-            for u in range(n):
-                for v in range(i, n):
+            for u in range(self.numVert):
+                for v in range(u+1, self.numVert):
                     listaArestas.append((self.matrizAdj[u][v], u, v))
-                i += 1
         return listaArestas
 
     # Gera a árvore geradora mínima do grafo usando o algoritmo de Kruskal.
@@ -386,7 +383,7 @@ class Grafo:
     def kruskal(self) -> List[Tuple[int, int]]:
         arestasMinimas: List[Tuple[int, int]] = []
         if self.matrizAdj:
-            conjDisj: ConjuntoDisjunto = ConjuntoDisjunto(len(self.matrizAdj))
+            conjDisj: ConjuntoDisjunto = ConjuntoDisjunto(self.numVert)
 
             # Decidi criar a lista de arestas no Kruskal porque
             # ela é usada somente aqui.
@@ -402,6 +399,9 @@ class Grafo:
                     arestasMinimas.append((aresta[1], aresta[2]))
 
         return arestasMinimas
+
+
+# Funções de Teste
 
 
 # Executa uma série de testes para as funções implementadas.
@@ -495,9 +495,7 @@ def testesGeral():
 
     # Operações em grafo
 
-    g = Grafo(10)
-    assert len(g.matrizAdj) == 10
-    g.aleatorio()
+    g = GrafoAleatorio(10)
     assert len(g.matrizAdj) == 10
     arestasG = g.criaListaArestas()
     # Total de arestas em g é um somatório de 1 + 2 + ... + len(g)-1
@@ -510,10 +508,14 @@ def testesGeral():
 
     conj = ConjuntoDisjunto(5)
     assert conj.union(0, 1) == True
+    assert conj.pai[1] == conj.findSet(1) and conj.pai[1] == 0
     assert conj.union(2, 1) == True
+    assert conj.findSet(2) == 2
     assert conj.union(0, 2) == False        # 0 e 2 estão no mesmo conjunto
     assert conj.union(3, 4) == True
     assert conj.union(1, 4) == True
+    assert conj.findSet(2) == 2
+    assert conj.findSet(3) == 2
     assert conj.union(2, 3) == False        # 2 e 3 estão no mesmo conjunto
 
     # Kruskal
@@ -596,8 +598,8 @@ def testesKruskal(tamanhos: List[int], numExec: int) -> None:
 
 
 def main():
-    # tamanhos: List[int] = [x * 250 for x in range(1, 9)]
-    tamanhos: List[int] = [x * 250 for x in range(1, 5)]
+    tamanhos: List[int] = [x * 250 for x in range(1, 9)]
+    # tamanhos: List[int] = [x * 250 for x in range(1, 5)]
     numExec: int = 500
 
     # testesRandomWalk(tamanhos, numExec)
