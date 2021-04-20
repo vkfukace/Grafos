@@ -376,7 +376,7 @@ class GrafoAleatorio:
         return listaArestas
 
     # Gera a árvore geradora mínima do grafo usando o algoritmo de Kruskal.
-    # Retorna uma lista com as arestas da árvore.
+    # Retorna uma lista com as arestas (u, v) da árvore.
     # Caso o grafo esteja vazio, retorna [].
     #
     # Baseado no pseudocódigo dos slides.
@@ -384,6 +384,7 @@ class GrafoAleatorio:
         arestasMinimas: List[Tuple[int, int]] = []
         if self.matrizAdj:
             conjDisj: ConjuntoDisjunto = ConjuntoDisjunto(self.numVert)
+            contVertices: int = 1
 
             # Decidi criar a lista de arestas no Kruskal porque
             # ela é usada somente aqui.
@@ -397,6 +398,9 @@ class GrafoAleatorio:
             for aresta in listArestas:
                 if conjDisj.union(aresta[1], aresta[2]) == True:
                     arestasMinimas.append((aresta[1], aresta[2]))
+                    contVertices += 1
+                if contVertices >= self.numVert:
+                    break
 
         return arestasMinimas
 
@@ -509,13 +513,17 @@ def testesGeral():
     conj = ConjuntoDisjunto(5)
     assert conj.union(0, 1) == True
     assert conj.pai[1] == conj.findSet(1) and conj.pai[1] == 0
+    assert conj.rank[0] == 1
+    assert conj.rank[1] == 0
     assert conj.union(2, 1) == True
     assert conj.findSet(2) == 2
+    assert conj.rank[2] == 1
     assert conj.union(0, 2) == False        # 0 e 2 estão no mesmo conjunto
     assert conj.union(3, 4) == True
     assert conj.union(1, 4) == True
     assert conj.findSet(2) == 2
     assert conj.findSet(3) == 2
+    assert conj.rank[2] == 2
     assert conj.union(2, 3) == False        # 2 e 3 estão no mesmo conjunto
 
     # Kruskal
