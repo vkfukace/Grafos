@@ -19,7 +19,7 @@ import time
 # Para as árvores resultantes, será utilizada lista de adjacência.
 
 
-# Classes Auxiliares
+# Classes e funções auxiliares
 
 
 # Classe auxiliar para randomTreeRandomWalk.
@@ -40,8 +40,8 @@ class ListaMapeada:
     # Remove o elemento x da estrutura.
     # Assume que x está presente na lista.
     def remove(self, x: int) -> None:
-        # Pega o índice em que x se encontra
-        # pop() em Dict tem tempo de execução médio O(1).
+        # Pega o índice em que x se encontra.
+        # pop() em Dict tem tempo de execução O(1) amortizado.
         posX = self.hash.pop(x)
         # Troca x e o último elemento de lugar.
         tam = len(self.lista)
@@ -61,13 +61,13 @@ class ListaMapeada:
         return numRetorno
 
 
-# Classe auxiliar para Kruskal
+# Classe auxiliar para Kruskal.
 #
 # Baseado na estrutura de dados descrita em:
 # https://en.wikipedia.org/wiki/Disjoint-set_data_structure
 class ConjuntoDisjunto:
     # Inicializa um conjunto disjunto de n elementos [0, 1, ..., n-1].
-    # Assume que n > 0
+    # Assume que n > 0.
     def __init__(self, n: int) -> None:
         self.pai: List[int] = [i for i in range(n)]
         self.rank: List[int] = [0 for i in range(n)]
@@ -101,6 +101,13 @@ class ConjuntoDisjunto:
         return True
 
 
+# Função auxiliar para Prim.
+# Retorna o índice do vértice com menor chave e o remove de listaVert.
+# Assume que há elementos em ambas as listas.
+def extractMin(listaVert: List[int], listaChave: List[float]) -> int:
+    pass
+
+
 # Classes Principais
 
 
@@ -116,10 +123,16 @@ class Vertice:
 
 
 class Arvore:
-    # Inicializa a árvore com nenhum vértice.
-    def __init__(self) -> None:
+    # Inicializa a árvore com n vértices, numerados de 0 até n-1.
+    # Caso n <= 0, inicializa árvore vazia.
+    def __init__(self, n: int) -> None:
+        if n < 0:
+            n = 0
         self.vertices: Dict[int, Vertice] = {}
-        self.numArestas: int = 0
+        for i in range(n):
+            self.vertices[i] = Vertice()
+
+        self.numArestas: int = n
 
     # Adiciona um vértice v à árvore.
     #
@@ -205,7 +218,7 @@ class Arvore:
         self.vertices[u].cor = "preto"
         return resultado
 
-    # Verifica se a árvore tem as propriedades de uma árvore
+    # Verifica se a árvore tem as propriedades de uma árvore.
     #
     # Caso não haja vértices na árvore, retorna False.
     # Caso encontre componentes disconexos ou ciclos, retorna False.
@@ -261,10 +274,11 @@ class Arvore:
                     maior = (u, self.vertices[u].d)
         return maior
 
-    # Retorna o comprimento do maior caminho da árvore
+    # Retorna o comprimento do maior caminho da árvore.
     #
-    # Caso a árvore não for conexa e acíclica, retorna -1
-    # Caso a árvore não tenha vértices, retorna -1
+    # Caso a árvore não for conexa e acíclica, retorna -1.
+    # Caso a árvore não tenha vértices, retorna -1.
+    # Assume que a árvore possui um vértice 0.
     #
     # Baseado no pseudocódigo dos slides.
     def diametro(self) -> int:
@@ -272,8 +286,7 @@ class Arvore:
         if self.isArvore() == False:
             return -1
         # Pega a primeira chave de self.vertices
-        v = next(iter(self.vertices))
-        a = self.bfs(v)
+        a = self.bfs(0)
         return self.bfs(a[0])[1]
 
     # Gera uma árvore aleatória com n vértices.
@@ -286,7 +299,7 @@ class Arvore:
         if n < 1:
             return
 
-        self.__init__()
+        self.__init__(0)
         # Descrição da ListaMapeada está no início da definição de dados.
         listaDisponiveis: ListaMapeada = ListaMapeada(n)
         for i in range(n):
@@ -332,9 +345,25 @@ class Arvore:
         if n < 1:
             return
 
-        self.__init__()
-        for i in range(n):
-            self.vertices[i] = Vertice()
+        self.__init__(n)
+
+        g = GrafoAleatorio(n)
+        listaArestas: List[Tuple[int, int]] = g.kruskal()
+
+        for aresta in listaArestas:
+            self.addAresta(aresta[0], aresta[1])
+
+    # Gera uma árvore aleatória com n vértices usando o algoritmo de Prim.
+    # Sobrescreve os dados da árvore anteriores à execução.
+    #
+    # Caso n < 1, a operação não é executada.
+    #
+    # Baseado no pseudocódigo dos slides.
+    def randomTreePrim(self, n: int) -> None:
+        if n < 1:
+            return
+
+        self.__init__(n)
 
         g = GrafoAleatorio(n)
         listaArestas: List[Tuple[int, int]] = g.kruskal()
@@ -377,30 +406,54 @@ class GrafoAleatorio:
 
     # Gera a árvore geradora mínima do grafo usando o algoritmo de Kruskal.
     # Retorna uma lista com as arestas (u, v) da árvore.
-    # Caso o grafo esteja vazio, retorna [].
+    # Assume que há pelo menos um vértice no grafo.
     #
     # Baseado no pseudocódigo dos slides.
     def kruskal(self) -> List[Tuple[int, int]]:
         arestasMinimas: List[Tuple[int, int]] = []
-        if self.matrizAdj:
-            conjDisj: ConjuntoDisjunto = ConjuntoDisjunto(self.numVert)
-            contVertices: int = 1
+        conjDisj: ConjuntoDisjunto = ConjuntoDisjunto(self.numVert)
+        contVertices: int = 1
 
-            # Decidi criar a lista de arestas no Kruskal porque
-            # ela é usada somente aqui.
-            listArestas: List[Tuple[int, int, int]] = self.criaListaArestas()
+        # Decidi criar a lista de arestas no Kruskal porque
+        # ela é usada somente aqui.
+        listArestas: List[Tuple[int, int, int]] = self.criaListaArestas()
 
-            # .sort() tem complexidade O(n lg(n)), mesmo com key
-            # https://en.wikipedia.org/wiki/Timsort
-            # https://docs.python.org/3/howto/sorting.html
-            listArestas.sort(key=lambda aresta: aresta[0])
+        # .sort() tem complexidade O(n lg(n)), mesmo com key
+        # https://en.wikipedia.org/wiki/Timsort
+        # https://docs.python.org/3/howto/sorting.html
+        listArestas.sort(key=lambda aresta: aresta[0])
 
-            for aresta in listArestas:
-                if conjDisj.union(aresta[1], aresta[2]) == True:
-                    arestasMinimas.append((aresta[1], aresta[2]))
-                    contVertices += 1
-                if contVertices >= self.numVert:
-                    break
+        for aresta in listArestas:
+            if conjDisj.union(aresta[1], aresta[2]) == True:
+                arestasMinimas.append((aresta[1], aresta[2]))
+                contVertices += 1
+            if contVertices >= self.numVert:
+                break
+
+        return arestasMinimas
+
+    # Gera a árvore geradora mínima do grafo usando o algoritmo de Kruskal.
+    # Retorna uma lista com as arestas (u, v) da árvore.
+    # Assume que há pelo menos um vértice no grafo.
+    #
+    # Baseado no pseudocódigo dos slides.
+    def prim(self, r: int) -> List[Tuple[int, int]]:
+        arestasMinimas: List[Tuple[int, int]] = []
+        chave: List[float] = [1.0] * self.numVert
+        pai: List[int] = [-1] * self.numVert
+        chave[r] = 0.0
+        filaPrio: List[int]
+        filaPrio = [i for i in range(self.numVert)]
+
+        # TODO: executar uma vez antes de comecar o while
+        # depois, sempre que der extractMin, adicionar (u, v)
+        # na lista de retorno
+        while filaPrio:
+            u = extractMin(filaPrio, chave)
+            for v in self.matrizAdj[u]:
+                if v in filaPrio and self.matrizAdj[u][v] < chave[v]:
+                    pai[v] = u
+                    chave[v] = self.matrizAdj[u][v]
 
         return arestasMinimas
 
@@ -411,7 +464,7 @@ class GrafoAleatorio:
 # Executa uma série de testes para as funções implementadas.
 def testesGeral():
     # Operações em Árvore
-    a = Arvore()
+    a = Arvore(0)
 
     # Operações em árvore vazia
     assert a.diametro() == -1
@@ -419,68 +472,68 @@ def testesGeral():
     assert a.isArvore() == False
 
     # Adição de vértices
+    assert a.addVertice(0) == True
     assert a.addVertice(1) == True
     assert a.addVertice(2) == True
     assert a.addVertice(3) == True
-    assert a.addVertice(4) == True
-    assert a.addVertice(1) == False         # Vértice já existe
+    assert a.addVertice(0) == False         # Vértice já existe
 
     # Adição de arestas
-    assert a.addAresta(1, 2) == True
-    assert a.addAresta(1, 3) == True
-    assert a.addAresta(3, 4) == True
-    assert a.addAresta(1, 2) == False       # Aresta já existe
-    assert a.addAresta(1, 9) == False       # Vértice 9 não existe
+    assert a.addAresta(0, 1) == True
+    assert a.addAresta(0, 2) == True
+    assert a.addAresta(2, 3) == True
+    assert a.addAresta(0, 1) == False       # Aresta já existe
+    assert a.addAresta(0, 9) == False       # Vértice 9 não existe
 
     # Representação da árvore
-    #      4
+    #      3
     #      |
-    #   2  3
+    #   1  2
     #    \ |
-    #      1
+    #      0
 
     assert a.isArvore() == True
 
-    a.addVertice(5)
-    assert a.isArvore() == False            # 5 não está conexo à árvore
+    a.addVertice(4)
+    assert a.isArvore() == False            # 4 não está conexo à árvore
 
-    a.addAresta(1, 5)
+    a.addAresta(0, 4)
     assert a.isArvore() == True
     assert a.bfs(9) == (None, 0)            # Aresta 9 não existe
-    assert a.bfs(1) == (4, 2)
+    assert a.bfs(0) == (3, 2)
 
-    assert a.vertices[1].d == 0
+    assert a.vertices[0].d == 0
+    assert a.vertices[1].d == 1
     assert a.vertices[2].d == 1
-    assert a.vertices[3].d == 1
-    assert a.vertices[4].d == 2
-    assert a.vertices[5].d == 1
+    assert a.vertices[3].d == 2
+    assert a.vertices[4].d == 1
 
-    assert a.diametro() == 3                # Caminho de 2 ou 5 -> 4
+    assert a.diametro() == 3                # Caminho de 1 ou 4 -> 3
 
     # Representação da árvore
-    #      4
+    #      3
     #      |
-    #   2  3  5
+    #   1  2  4
     #    \ | /
-    #      1
+    #      0
 
-    assert a.addAresta(3, 5) == True        # Cria um ciclo
+    assert a.addAresta(2, 4) == True        # Cria um ciclo
 
-    assert a.bfs(1) == (4, 2)
+    assert a.bfs(0) == (3, 2)
     assert a.isArvore() == False                 # isArvore encontra o ciclo
     assert a.diametro() == -1               # a tem um ciclo
 
-    assert a.removeAresta(3, 5) == True     # remove uma aresta do ciclo
-    assert a.addVertice(6) == True
-    assert a.addAresta(5, 6) == True
-    assert a.diametro() == 4                # Caminho de 4 -> 6
+    assert a.removeAresta(2, 4) == True     # remove uma aresta do ciclo
+    assert a.addVertice(5) == True
+    assert a.addAresta(4, 5) == True
+    assert a.diametro() == 4                # Caminho de 3 -> 5
 
     # Representação da árvore
-    #      4    6
+    #      3    5
     #      |   /
-    #   2  3  5
+    #   1  2  4
     #    \ | /
-    #      1
+    #      0
 
     # Operações em lista mapeada
 
@@ -531,16 +584,26 @@ def testesGeral():
     a.randomTreeKruskal(50)
     assert a.diametro() != -1
 
+    # Prim
+
+    # a.randomTreePrim(50)
+    # assert a.diametro() != -1
+
+    # TODO: Testes do extractMin
+    # Colocar tetes do kruskal e prim nos grafos
+    print("Testes Gerais Executados\n")
 
 # Gera árvores aleatórias usando randomTreeRandomWalk e grava a média dos
 # diâmetros dessas árvores em "randomwalk.txt".
 # Para cada n em tamanhos, são geradas numExec árvores de tamanho n.
 # Mostra o tempo de execução para cada tamanho n.
+
+
 def testesRandomWalk(tamanhos: List[int], numExec: int) -> None:
     acumulador: float = 0
     resultado: int
     media: float
-    arvore: Arvore = Arvore()
+    arvore: Arvore = Arvore(0)
     tempoInicio: float = time.time()
     tempoExec: float
 
@@ -575,7 +638,7 @@ def testesKruskal(tamanhos: List[int], numExec: int) -> None:
     acumulador: float = 0
     resultado: int
     media: float
-    arvore: Arvore = Arvore()
+    arvore: Arvore = Arvore(0)
     tempoInicio: float = time.time()
     tempoExec: float
 
@@ -609,10 +672,10 @@ def main():
     tamanhos: List[int] = [x * 250 for x in range(1, 9)]
     numExec: int = 500
 
-    # testesRandomWalk(tamanhos, numExec)
-    testesKruskal(tamanhos, numExec)
-
     testesGeral()
+
+    testesRandomWalk(tamanhos, numExec)
+    testesKruskal(tamanhos, numExec)
 
     exit
 
