@@ -105,7 +105,12 @@ class ConjuntoDisjunto:
 # Retorna o índice do vértice com menor chave e o remove de listaVert.
 # Assume que há elementos em ambas as listas.
 def extractMin(listaVert: List[int], listaChave: List[float]) -> int:
-    pass
+    menor = 0
+    for i in range(1, len(listaVert)):
+        if listaChave[listaVert[i]] < listaChave[listaVert[menor]]:
+            menor = i
+    listaVert[menor], listaVert[-1] = listaVert[-1], listaVert[menor]
+    return listaVert.pop()
 
 
 # Classes Principais
@@ -299,12 +304,10 @@ class Arvore:
         if n < 1:
             return
 
-        self.__init__(0)
+        self.__init__(n)
         # Descrição da ListaMapeada está no início da definição de dados.
         listaDisponiveis: ListaMapeada = ListaMapeada(n)
-        for i in range(n):
-            self.vertices[i] = Vertice()
-            self.vertices[i].cor = 'branco'
+        self.__inicializaVertices('branco')
         u = 0
         self.vertices[u].cor = 'preto'
         listaDisponiveis.remove(0)
@@ -366,7 +369,7 @@ class Arvore:
         self.__init__(n)
 
         g = GrafoAleatorio(n)
-        listaArestas: List[Tuple[int, int]] = g.kruskal()
+        listaArestas: List[Tuple[int, int]] = g.prim()
 
         for aresta in listaArestas:
             self.addAresta(aresta[0], aresta[1])
@@ -437,23 +440,23 @@ class GrafoAleatorio:
     # Assume que há pelo menos um vértice no grafo.
     #
     # Baseado no pseudocódigo dos slides.
-    def prim(self, r: int) -> List[Tuple[int, int]]:
+    def prim(self) -> List[Tuple[int, int]]:
         arestasMinimas: List[Tuple[int, int]] = []
-        chave: List[float] = [1.0] * self.numVert
-        pai: List[int] = [-1] * self.numVert
-        chave[r] = 0.0
-        filaPrio: List[int]
-        filaPrio = [i for i in range(self.numVert)]
 
-        # TODO: executar uma vez antes de comecar o while
-        # depois, sempre que der extractMin, adicionar (u, v)
-        # na lista de retorno
+        pai: List[int] = [-1] * self.numVert
+        chave: List[float] = [1.0] * self.numVert
+        chave[0] = 0.0
+        filaPrio: List[int] = [i for i in range(self.numVert)]
+
         while filaPrio:
             u = extractMin(filaPrio, chave)
-            for v in self.matrizAdj[u]:
+            for v in range(self.numVert):
                 if v in filaPrio and self.matrizAdj[u][v] < chave[v]:
                     pai[v] = u
                     chave[v] = self.matrizAdj[u][v]
+
+        for i in range(1, self.numVert):
+            arestasMinimas.append((i, pai[i]))
 
         return arestasMinimas
 
@@ -554,12 +557,16 @@ def testesGeral():
 
     g = GrafoAleatorio(10)
     assert len(g.matrizAdj) == 10
+
     arestasG = g.criaListaArestas()
     # Total de arestas em g é um somatório de 1 + 2 + ... + len(g)-1
     totalArestasG = 0
     for i in range(10):
         totalArestasG += i
     assert len(arestasG) == totalArestasG
+
+    arestasArvoreMinima = g.kruskal()
+    assert len(arestasArvoreMinima) == 9
 
     # Operações em conjunto disjunto
 
@@ -584,21 +591,36 @@ def testesGeral():
     a.randomTreeKruskal(50)
     assert a.diametro() != -1
 
-    # Prim
+    # extractMin
+    listaVert = [0, 1, 2, 3, 4]
+    listaChave = [2.2, 0.0, 10.0, 1.3, 4.1]
+    assert extractMin(listaVert, listaChave) == 1
+    assert listaVert == [0, 4, 2, 3]
+    assert extractMin(listaVert, listaChave) == 3
+    assert listaVert == [0, 4, 2]
+    assert extractMin(listaVert, listaChave) == 0
+    assert listaVert == [2, 4]
+    assert extractMin(listaVert, listaChave) == 4
+    assert listaVert == [2]
+    assert extractMin(listaVert, listaChave) == 2
+    assert listaVert == []
+    assert listaChave == [2.2, 0.0, 10.0, 1.3, 4.1]
 
-    # a.randomTreePrim(50)
-    # assert a.diametro() != -1
+# Prim
 
-    # TODO: Testes do extractMin
-    # Colocar tetes do kruskal e prim nos grafos
-    print("Testes Gerais Executados\n")
+# a.randomTreePrim(50)
+# assert a.diametro() != -1
+
+
+# TODO: Testes do extractMin
+# Colocar tetes do kruskal e prim nos grafos
+print("Testes Gerais Executados\n")
+
 
 # Gera árvores aleatórias usando randomTreeRandomWalk e grava a média dos
 # diâmetros dessas árvores em "randomwalk.txt".
 # Para cada n em tamanhos, são geradas numExec árvores de tamanho n.
 # Mostra o tempo de execução para cada tamanho n.
-
-
 def testesRandomWalk(tamanhos: List[int], numExec: int) -> None:
     acumulador: float = 0
     resultado: int
@@ -665,20 +687,58 @@ def testesKruskal(tamanhos: List[int], numExec: int) -> None:
         arqKruskal.close()
 
 
+# Gera árvores aleatórias usando randomTreePrim e grava a média dos
+# diâmetros dessas árvores em "prim.txt".
+# Para cada n em tamanhos, são geradas numExec árvores de tamanho n.
+# Mostra o tempo de execução para cada tamanho n.
+def testesPrim(tamanhos: List[int], numExec: int) -> None:
+    acumulador: float = 0
+    resultado: int
+    media: float
+    arvore: Arvore = Arvore(0)
+    tempoInicio: float = time.time()
+    tempoExec: float
+
+    try:
+        arqPrim = open("prim.txt", 'w')
+        print(f'Tempo de execução do prim ({numExec} vezes):')
+        for i in tamanhos:
+            tempoExec = time.time()
+            for j in range(numExec):
+                arvore.randomTreePrim(i)
+                resultado = arvore.diametro()
+                if resultado == -1:
+                    print("Erro na geração de árvore")
+                    arqPrim.close()
+                    return
+                acumulador += resultado
+            media = acumulador/numExec
+            arqPrim.write(str(i) + ' ' + str(media) + '\n')
+            acumulador = 0
+            tempoExec = time.time() - tempoExec
+            print(f'{i:4} Elementos: {tempoExec:.2f}s')
+        print(f'Tempo Total: {time.time()-tempoInicio:.2f}s')
+    finally:
+        arqPrim.close()
+
+
 # Funcão Principal
 
 
 def main():
-    tamanhos: List[int] = [x * 250 for x in range(1, 9)]
-    numExec: int = 500
+    tamanhos: List[int] = [x * 100 for x in range(1, 9)]
+    numExec: int = 50
 
     testesGeral()
 
-    testesRandomWalk(tamanhos, numExec)
-    testesKruskal(tamanhos, numExec)
+    # testesRandomWalk(tamanhos, numExec)
+    # testesKruskal(tamanhos, numExec)
+    testesPrim(tamanhos, numExec)
 
     exit
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    import cProfile
+    cProfile.run('main()')
