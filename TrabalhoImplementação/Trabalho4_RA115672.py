@@ -382,7 +382,7 @@ class GrafoAleatorio:
     # Assume que n > 0.
     def __init__(self, n: int) -> None:
         self.matrizAdj: List[List[float]] = [
-            [1.0 for i in range(n)]for j in range(n)]
+            [1.0 for i in range(n)] for j in range(n)]
 
         self.numVert: int = n
 
@@ -391,12 +391,10 @@ class GrafoAleatorio:
                 self.matrizAdj[u][v] = random.random()
                 self.matrizAdj[v][u] = self.matrizAdj[u][v]
 
-        for u in range(self.numVert):
-            self.matrizAdj[u][u] = 1.0
-
     # Retorna uma lista das arestas contidas no grafo e seus pesos, com
     # exceção das arestas do tipo (u, u).
     # Para cada aresta (u, v), a entrada na lista é do tipo [w(u, v), u, v].
+
     def criaListaArestas(self) -> List[Tuple[int, int, int]]:
         # Como metade das arestas são repetidas, os vértices adicionados na
         # lista serão do tipo [(u, v), u < v].
@@ -450,8 +448,8 @@ class GrafoAleatorio:
 
         while filaPrio:
             u = extractMin(filaPrio, chave)
-            for v in range(self.numVert):
-                if v in filaPrio and self.matrizAdj[u][v] < chave[v]:
+            for v in filaPrio:
+                if self.matrizAdj[u][v] < chave[v]:
                     pai[v] = u
                     chave[v] = self.matrizAdj[u][v]
 
@@ -592,6 +590,7 @@ def testesGeral():
     assert a.diametro() != -1
 
     # extractMin
+
     listaVert = [0, 1, 2, 3, 4]
     listaChave = [2.2, 0.0, 10.0, 1.3, 4.1]
     assert extractMin(listaVert, listaChave) == 1
@@ -606,20 +605,17 @@ def testesGeral():
     assert listaVert == []
     assert listaChave == [2.2, 0.0, 10.0, 1.3, 4.1]
 
-# Prim
+    # Prim
 
-# a.randomTreePrim(50)
-# assert a.diametro() != -1
+    a.randomTreePrim(50)
+    assert a.diametro() != -1
 
-
-# TODO: Testes do extractMin
-# Colocar tetes do kruskal e prim nos grafos
-print("Testes Gerais Executados\n")
+    print("Testes Gerais Executados\n")
 
 
 # Gera árvores aleatórias usando randomTreeRandomWalk e grava a média dos
 # diâmetros dessas árvores em "randomwalk.txt".
-# Para cada n em tamanhos, são geradas numExec árvores de tamanho n.
+# Para cada n em tamanhos, são geradas numExec árvores com n vértices.
 # Mostra o tempo de execução para cada tamanho n.
 def testesRandomWalk(tamanhos: List[int], numExec: int) -> None:
     acumulador: float = 0
@@ -654,7 +650,7 @@ def testesRandomWalk(tamanhos: List[int], numExec: int) -> None:
 
 # Gera árvores aleatórias usando randomTreeKruskal e grava a média dos
 # diâmetros dessas árvores em "kruskal.txt".
-# Para cada n em tamanhos, são geradas numExec árvores de tamanho n.
+# Para cada n em tamanhos, são geradas numExec árvores com n vértices.
 # Mostra o tempo de execução para cada tamanho n.
 def testesKruskal(tamanhos: List[int], numExec: int) -> None:
     acumulador: float = 0
@@ -689,7 +685,7 @@ def testesKruskal(tamanhos: List[int], numExec: int) -> None:
 
 # Gera árvores aleatórias usando randomTreePrim e grava a média dos
 # diâmetros dessas árvores em "prim.txt".
-# Para cada n em tamanhos, são geradas numExec árvores de tamanho n.
+# Para cada n em tamanhos, são geradas numExec árvores com n vértices.
 # Mostra o tempo de execução para cada tamanho n.
 def testesPrim(tamanhos: List[int], numExec: int) -> None:
     acumulador: float = 0
@@ -726,8 +722,8 @@ def testesPrim(tamanhos: List[int], numExec: int) -> None:
 
 
 def main():
-    tamanhos: List[int] = [x * 100 for x in range(1, 9)]
-    numExec: int = 50
+    tamanhos: List[int] = [x * 250 for x in range(1, 9)]
+    numExec: int = 500
 
     testesGeral()
 
@@ -735,10 +731,8 @@ def main():
     # testesKruskal(tamanhos, numExec)
     testesPrim(tamanhos, numExec)
 
-    exit
-
 
 if __name__ == '__main__':
-    # main()
-    import cProfile
-    cProfile.run('main()')
+    main()
+    # import cProfile
+    # cProfile.run('main()')
