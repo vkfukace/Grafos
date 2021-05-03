@@ -413,7 +413,7 @@ class GrafoAleatorio:
     def kruskal(self) -> List[Tuple[int, int]]:
         arestasMinimas: List[Tuple[int, int]] = []
         conjDisj: ConjuntoDisjunto = ConjuntoDisjunto(self.numVert)
-        contVertices: int = 1
+        contArestas: int = 0
 
         # Decidi criar a lista de arestas no Kruskal porque
         # ela é usada somente aqui.
@@ -427,8 +427,8 @@ class GrafoAleatorio:
         for aresta in listArestas:
             if conjDisj.union(aresta[1], aresta[2]) == True:
                 arestasMinimas.append((aresta[1], aresta[2]))
-                contVertices += 1
-            if contVertices >= self.numVert:
+                contArestas += 1
+            if contArestas >= self.numVert - 1:
                 break
 
         return arestasMinimas
@@ -728,8 +728,8 @@ def main():
     testesGeral()
 
     # testesRandomWalk(tamanhos, numExec)
-    # testesKruskal(tamanhos, numExec)
-    testesPrim(tamanhos, numExec)
+    testesKruskal(tamanhos, numExec)
+    # testesPrim(tamanhos, numExec)
 
 
 if __name__ == '__main__':
